@@ -38,7 +38,7 @@ export default function Router() {
       children: [
         { element: <Navigate to={PATH_AFTER_LOGIN} replace />, index: true },
         { path: 'dash', element: <PageOne /> },
-        { path: 'two', element: <PageTwo /> },
+        { path: 'profile', element: <PageTwo /> },
         { path: 'three', element: <PageThree /> },
         {
           path: 'user',
