@@ -15,7 +15,7 @@ LoginLayout.propTypes = {
   illustration: PropTypes.string,
 };
 
-export default function LoginLayout({ children, illustration, title }) {
+export default function LoginLayout({ children, illustration, title, subtitle }) {
   return (
     <StyledRoot>
       <Logo
@@ -30,6 +30,10 @@ export default function LoginLayout({ children, illustration, title }) {
       <StyledSection>
         <Typography variant="h3" sx={{ mb: 0, maxWidth: 480, textAlign: 'center' }}>
           {title || 'Hi, Welcome back'}
+        </Typography>
+
+        <Typography variant="h6" sx={{ mb: 0, maxWidth: 480, textAlign: 'center' }}>
+          {subtitle}
         </Typography>
 
         <Image

@@ -9,7 +9,7 @@ export default function LoginPage() {
         <title> Login | OneTap</title>
       </Helmet>
 
-      <Login title="Welcome to One Tap"/>
+      <Login/>
     </>
   );
 }
