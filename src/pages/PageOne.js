@@ -12,12 +12,12 @@ export default function PageOne() {
   return (
     <>
       <Helmet>
-        <title> Page One | Minimal UI</title>
+        <title> Dashboard | OneTap </title>
       </Helmet>
 
       <Container maxWidth={themeStretch ? false : 'xl'}>
         <Typography variant="h3" component="h1" paragraph>
-          Page One
+          Welcome to OneTap
         </Typography>
 
         <Typography gutterBottom>

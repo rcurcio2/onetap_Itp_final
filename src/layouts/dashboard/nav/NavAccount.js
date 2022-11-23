@@ -26,11 +26,15 @@ export default function NavAccount() {
       <CustomAvatar src={user?.photoURL} alt={user?.displayName} name={user?.displayName} />
 
       <Box sx={{ ml: 2, minWidth: 0 }}>
-        <Typography variant="subtitle2" noWrap>
+        <Typography variant="subtitle1" noWrap>
           {user?.displayName}
         </Typography>
 
-        <Typography variant="body2" noWrap sx={{ color: 'text.secondary' }}>
+        <Typography variant="subtitle2" noWrap sx={{ color: 'text.secondary' }}>
+          {user?.total_poured} Drinks
+        </Typography>    
+        
+        <Typography variant="body2" noWrap sx={{ color: 'text.disabled' }}>
           {user?.role}
         </Typography>
       </Box>

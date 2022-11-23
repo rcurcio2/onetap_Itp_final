@@ -7,14 +7,13 @@ import {
   signInWithPopup,
   onAuthStateChanged,
   GoogleAuthProvider,
-  GithubAuthProvider,
-  TwitterAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { getFirestore, collection, doc, getDoc, setDoc } from 'firebase/firestore';
 // config
 import { FIREBASE_API } from '../config';
+// import { role } from 'src/_mock/assets';
 
 // ----------------------------------------------------------------------
 
@@ -56,9 +55,6 @@ const DB = getFirestore(firebaseApp);
 
 const GOOGLE_PROVIDER = new GoogleAuthProvider();
 
-const GITHUB_PROVIDER = new GithubAuthProvider();
-
-const TWITTER_PROVIDER = new TwitterAuthProvider();
 
 AuthProvider.propTypes = {
   children: PropTypes.node,
@@ -77,6 +73,8 @@ export function AuthProvider({ children }) {
 
           const profile = docSnap.data();
 
+          const userRole = profile.admin ? 'admin' : 'User';
+
           dispatch({
             type: 'INITIAL',
             payload: {
@@ -84,7 +82,10 @@ export function AuthProvider({ children }) {
               user: {
                 ...user,
                 ...profile,
-                role: 'admin',
+                role: userRole,
+                groups: profile.groups,
+                total_poured: profile.total_poured,
+
               },
             },
           });
@@ -112,19 +113,19 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = () => signInWithPopup(AUTH, GOOGLE_PROVIDER);
 
-  const loginWithGithub = async () => signInWithPopup(AUTH, GITHUB_PROVIDER);
-
-  const loginWithTwitter = async () => signInWithPopup(AUTH, TWITTER_PROVIDER);
-
   // REGISTER
   const register = (email, password, firstName, lastName) =>
     createUserWithEmailAndPassword(AUTH, email, password).then(async (res) => {
       const userRef = doc(collection(DB, 'users'), res.user?.uid);
 
       await setDoc(userRef, {
-        uid: res.user?.uid,
+        id: res.user?.uid,
         email,
         displayName: `${firstName} ${lastName}`,
+        admin: false,
+        balance: 0,
+        total_poured: 0,
+        approved: [],
       });
     });
 
@@ -138,8 +139,6 @@ export function AuthProvider({ children }) {
         method: 'firebase',
         login,
         loginWithGoogle,
-        loginWithGithub,
-        loginWithTwitter,
         register,
         logout,
       }}
