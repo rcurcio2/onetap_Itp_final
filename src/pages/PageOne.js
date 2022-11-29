@@ -1,42 +1,134 @@
+import { useEffect, useState } from 'react';
+
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+
 import { Helmet } from 'react-helmet-async';
 // @mui
-import { Container, Typography } from '@mui/material';
-// components
-import { useSettingsContext } from '../components/settings';
+import { useTheme } from '@mui/material/styles';
+import { Container, Grid, Stack, Button } from '@mui/material';
+// auth
+import { useAuthContext } from '../auth/useAuthContext';
+import { DB } from '../auth/FirebaseContext';
+
+
+// sections
+import { AppWelcome, AppWidgetSummary, AppDeviceStatus } from '../sections/@dashboard/general/app';
+
+import {_appInvoices} from '../_mock/arrays';
+
 
 // ----------------------------------------------------------------------
 
-export default function PageOne() {
-  const { themeStretch } = useSettingsContext();
+async function getUserTransactions(uid) {
+  const txRef = collection(DB, 'users', uid, 'transactions');
+  const q = query(txRef, orderBy("time", "desc"), limit(10));
+  const querySnapshot = await getDocs(q);
+  const transactions = [];
+  querySnapshot.forEach((doc) => {
+    transactions.push(doc.data());
+  }
+  );
+  return transactions;
+}
+
+async function getAllDevices(groups) {
+  const devicesRef = collection(DB, 'machines');
+  const querySnapshot = await getDocs(devicesRef);
+  const devices = [];
+  querySnapshot.forEach((doc) => {
+    devices.push({
+      id: doc.id,
+      name: doc.data().groupName,
+      status: doc.data().kegOnline ? 'online' : 'offline',
+      approved: groups.includes(doc.id),
+    });
+  }
+  );
+  return devices;
+}
+
+function calculateTotalPoured(transactions) {
+  let total = 0;
+  transactions.forEach((tx) => {
+    total += tx.amount;
+  });
+  return total.toFixed(2);
+}
+
+
+
+export default function GeneralAppPage() {
+  const { user } = useAuthContext();
+  const [totalPoured, setTotalPoured] = useState(0.00);
+  const [transactions, setTransactions] = useState([]);
+  const [devices, setDevices] = useState([]);
+
+  useEffect(() => {
+    // Need snapshot on devices here
+    getAllDevices(user.groups).then((devices) => {
+      setDevices(devices);
+    });
+
+    getUserTransactions(user.uid).then((res) => { 
+      setTransactions(res);
+      setTotalPoured(calculateTotalPoured(res));
+      user.total_poured = totalPoured;
+    });
+  }, [user, totalPoured]);
 
   return (
     <>
       <Helmet>
-        <title> Dashboard | OneTap </title>
+        <title> Dashbaord | OneTap </title>
       </Helmet>
 
-      <Container maxWidth={themeStretch ? false : 'xl'}>
-        <Typography variant="h3" component="h1" paragraph>
-          Welcome to OneTap
-        </Typography>
+      <Container maxWidth={'xl'}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <AppWelcome
+              title={`Welcome back, ${user?.displayName}`}
+              description="Choose a device from the available ones below to start a pour."
+              // img={
+              //   <SeoIllustration
+              //     sx={{
+              //       p: 3,
+              //       width: 360,
+              //       margin: { xs: 'auto', md: 'inherit' },
+              //     }}
+              //   />
+              // }
+              action={<Button variant="contained">Go Now</Button>}
+              sx={{ p: 3 }}
+            />
+          </Grid>
 
-        <Typography gutterBottom>
-          Curabitur turpis. Vestibulum facilisis, purus nec pulvinar iaculis, ligula mi congue nunc,
-          vitae euismod ligula urna in dolor. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit
-          id, lorem. Phasellus blandit leo ut odio. Vestibulum ante ipsum primis in faucibus orci
-          luctus et ultrices posuere cubilia Curae; Fusce id purus. Aliquam lorem ante, dapibus in,
-          viverra quis, feugiat a, tellus. In consectetuer turpis ut velit. Aenean posuere, tortor
-          sed cursus feugiat, nunc augue blandit nunc, eu sollicitudin urna dolor sagittis lacus.
-          Vestibulum suscipit nulla quis orci. Nam commodo suscipit quam. Sed a libero.
-        </Typography>
+          <Grid item xs={12} md={4}>
+            <AppWidgetSummary
+                title="Total Poured"
+                label="oz"
+                total={parseFloat(totalPoured)}
+                chart={{
+                  colors: ["#F44336"],
+                  series: [1, 3, 2, 1.3, 0.6, 1.6, 2, 1.1, 1.3, 0.5],
+                }}
+                sx={{ height: 1 }}
+              />
+          </Grid>
 
-        <Typography>
-          Praesent ac sem eget est egestas volutpat. Phasellus viverra nulla ut metus varius
-          laoreet. Curabitur ullamcorper ultricies nisi. Ut non enim eleifend felis pretium feugiat.
-          Donec mi odio, faucibus at, scelerisque quis, convallis in, nisi. Fusce vel dui. Quisque
-          libero metus, condimentum nec, tempor a, commodo mollis, magna. In enim justo, rhoncus ut,
-          imperdiet a, venenatis vitae, justo. Cras dapibus.
-        </Typography>
+          <Grid item xs={12} lg={8}>
+            <AppDeviceStatus
+              title="All Devices"
+              subheader={"Request to join any group or take action on available devices"}
+              tableData={devices}
+              tableLabels={[
+                { id: 'name', label: 'Device Name' },
+                { id: 'online', label: 'Status' },
+                { id: '' },
+              ]}
+            />
+          </Grid>
+          
+        </Grid>
       </Container>
     </>
   );

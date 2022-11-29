@@ -21,5 +21,6 @@ export const PageThree = Loadable(lazy(() => import('../pages/PageThree')));
 export const PageFour = Loadable(lazy(() => import('../pages/PageFour')));
 export const PageFive = Loadable(lazy(() => import('../pages/PageFive')));
 export const PageSix = Loadable(lazy(() => import('../pages/PageSix')));
+export const DevicePage = Loadable(lazy(() => import('../pages/DevicePage')));
 
 export const Page404 = Loadable(lazy(() => import('../pages/Page404')));

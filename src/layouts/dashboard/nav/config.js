@@ -32,12 +32,11 @@ const navConfig = [
     subheader: 'management',
     items: [
       {
-        title: 'user',
+        title: 'All Users',
         path: PATH_DASHBOARD.user.root,
         icon: ICONS.user,
         children: [
-          { title: 'Profile', path: PATH_DASHBOARD.user.four },
-          { title: 'Admin', path: PATH_DASHBOARD.user.five },
+          { title: 'Admin', path: PATH_DASHBOARD.user.admin },
         ],
       },
     ],

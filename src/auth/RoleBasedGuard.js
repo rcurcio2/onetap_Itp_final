@@ -32,7 +32,6 @@ export default function RoleBasedGuard({ hasContent, roles, children }) {
             Permission Denied
           </Typography>
         </m.div>
-
         <m.div variants={varBounce().in}>
           <Typography sx={{ color: 'text.secondary' }}>You do not have permission to access this page</Typography>
         </m.div>
