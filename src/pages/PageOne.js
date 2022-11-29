@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 
 import { Helmet } from 'react-helmet-async';
-// @mui
-import { useTheme } from '@mui/material/styles';
-import { Container, Grid, Stack, Button } from '@mui/material';
+
+import { Container, Grid, Button } from '@mui/material';
 // auth
 import { useAuthContext } from '../auth/useAuthContext';
 import { DB } from '../auth/FirebaseContext';
@@ -13,9 +12,6 @@ import { DB } from '../auth/FirebaseContext';
 
 // sections
 import { AppWelcome, AppWidgetSummary, AppDeviceStatus } from '../sections/@dashboard/general/app';
-
-import {_appInvoices} from '../_mock/arrays';
-
 
 // ----------------------------------------------------------------------
 
@@ -72,6 +68,8 @@ export default function GeneralAppPage() {
     getUserTransactions(user.uid).then((res) => { 
       setTransactions(res);
       setTotalPoured(calculateTotalPoured(res));
+      
+      // need total poured to update for the user sitewide
       user.total_poured = totalPoured;
     });
   }, [user, totalPoured]);

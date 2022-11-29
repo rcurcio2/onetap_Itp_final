@@ -2,11 +2,9 @@ import PropTypes from 'prop-types';
 import { sentenceCase } from 'change-case';
 // @mui
 import {
-  Box,
   Card,
   Table,
   Button,
-  Divider,
   TableRow,
   TableBody,
   TableCell,
@@ -15,7 +13,6 @@ import {
 } from '@mui/material';
 // components
 import Label from '../../../../components/label';
-import Iconify from '../../../../components/iconify';
 import Scrollbar from '../../../../components/scrollbar';
 import { TableHeadCustom } from '../../../../components/table';
 
