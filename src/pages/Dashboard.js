@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, query, orderBy, limit, updateDoc, arrayUnion } from 'firebase/firestore';
 
 import { Helmet } from 'react-helmet-async';
 
@@ -13,8 +14,11 @@ import { DB } from '../auth/FirebaseContext';
 // sections
 import { AppWelcome, AppWidgetSummary, AppDeviceStatus } from '../sections/@dashboard/general/app';
 
+
+
 // ----------------------------------------------------------------------
 
+// FireBase Functions
 async function getUserTransactions(uid) {
   const txRef = collection(DB, 'users', uid, 'transactions');
   const q = query(txRef, orderBy("time", "desc"), limit(10));
@@ -27,20 +31,41 @@ async function getUserTransactions(uid) {
   return transactions;
 }
 
-async function getAllDevices(groups) {
+async function getAllDevices(groups, uid) {
   const devicesRef = collection(DB, 'machines');
   const querySnapshot = await getDocs(devicesRef);
   const devices = [];
   querySnapshot.forEach((doc) => {
     devices.push({
       id: doc.id,
+      user: uid,
       name: doc.data().groupName,
       status: doc.data().kegOnline ? 'online' : 'offline',
       approved: groups.includes(doc.id),
+      pending: doc.data().userRequests.includes(uid),
     });
   }
   );
+
+  // sort devices by each rows approved status
+  devices.sort((a, b) => {
+    if (a.approved && !b.approved) {
+      return -1;
+    }
+    if (!a.approved && b.approved) {
+      return 1;
+    }
+    return 0;
+  });
+
   return devices;
+}
+
+async function updateDeviceRequest(device, uid) {
+  const deviceRef = doc(DB, 'machines', device);
+  await updateDoc(deviceRef, {
+    userRequests: arrayUnion(uid),
+  });
 }
 
 function calculateTotalPoured(transactions) {
@@ -58,17 +83,41 @@ export default function GeneralAppPage() {
   const [totalPoured, setTotalPoured] = useState(0.00);
   const [transactions, setTransactions] = useState([]);
   const [devices, setDevices] = useState([]);
+  const navigate = useNavigate();
+
+  const onDeviceClick = (device, approved) => {
+    if (!approved) {
+      updateDeviceRequest(device, user.uid)
+      .then(() => {
+        const newDevices = devices.map((d) => {
+          if (d.id === device) {
+            return {
+              ...d,
+              pending: true,
+            };
+          }
+          return d;
+        });
+        setDevices(newDevices);
+      });
+    } else {
+      navigate(`/dashboard/${device}/pour`);
+    }
+  }
+  
 
   useEffect(() => {
     // Need snapshot on devices here
-    getAllDevices(user.groups).then((devices) => {
+    getAllDevices(user.groups, user.uid).then((devices) => {
+      // sort devices by approved
       setDevices(devices);
     });
 
     getUserTransactions(user.uid).then((res) => { 
       setTransactions(res);
       setTotalPoured(calculateTotalPoured(res));
-      
+      console.log(res);
+
       // need total poured to update for the user sitewide
       user.total_poured = totalPoured;
     });
@@ -96,7 +145,7 @@ export default function GeneralAppPage() {
               //   />
               // }
               action={<Button variant="contained">Go Now</Button>}
-              sx={{ p: 3 }}
+              sx={ { p: 3 } }
             />
           </Grid>
 
@@ -113,7 +162,7 @@ export default function GeneralAppPage() {
               />
           </Grid>
 
-          <Grid item xs={12} lg={8}>
+          <Grid item xs={12} lg={12}>
             <AppDeviceStatus
               title="All Devices"
               subheader={"Request to join any group or take action on available devices"}
@@ -123,6 +172,7 @@ export default function GeneralAppPage() {
                 { id: 'online', label: 'Status' },
                 { id: '' },
               ]}
+              onDeviceClick={onDeviceClick}
             />
           </Grid>
           

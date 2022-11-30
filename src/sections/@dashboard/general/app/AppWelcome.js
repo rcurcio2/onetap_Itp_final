@@ -62,9 +62,9 @@ export default function AppWelcome({ title, description, action, img, ...other }
         justifyContent="center"
         alignItems={{ xs: 'center', md: 'flex-start' }}
         sx={{
-          pl: 5,
-          py: { xs: 5, md: 0 },
-          pr: { xs: 5, md: 0 },
+          pl: { xs: 1, md: 3 },
+          py: { xs: 1, md: 0 },
+          pr: { xs: 1, md: 0 },
           textAlign: { xs: 'center', md: 'left' },
         }}
       >

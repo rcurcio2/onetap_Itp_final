@@ -11,6 +11,8 @@ import {
   CardHeader,
   TableContainer,
 } from '@mui/material';
+
+import { LoadingButton } from '@mui/lab';
 // components
 import Label from '../../../../components/label';
 import Scrollbar from '../../../../components/scrollbar';
@@ -23,9 +25,10 @@ AppDeviceStatus.propTypes = {
   tableData: PropTypes.array,
   subheader: PropTypes.string,
   tableLabels: PropTypes.array,
+  onDeviceClick: PropTypes.func,
 };
 
-export default function AppDeviceStatus({ title, subheader, tableData, tableLabels, ...other }) {
+export default function AppDeviceStatus({ title, subheader, tableData, tableLabels, onDeviceClick, ...other }) {
   return (
     <Card {...other}>
       <CardHeader title={title} subheader={subheader} sx={{ mb: 3 }} />
@@ -37,7 +40,7 @@ export default function AppDeviceStatus({ title, subheader, tableData, tableLabe
 
             <TableBody>
               {tableData.map((row) => (
-                <AppNewDeviceRow key={row.id} row={row} />
+                <AppNewDeviceRow key={row.id} row={row} onDeviceClick={onDeviceClick} />
               ))}
             </TableBody>
           </Table>
@@ -59,13 +62,16 @@ export default function AppDeviceStatus({ title, subheader, tableData, tableLabe
 
 AppNewDeviceRow.propTypes = {
   row: PropTypes.shape({
+    id: PropTypes.string,
     name: PropTypes.string,
     status: PropTypes.string,
     approved: PropTypes.bool,
+    pending: PropTypes.bool,
   }),
+  onDeviceClick: PropTypes.func,
 };
 
-function AppNewDeviceRow({ row }) {
+function AppNewDeviceRow({ row, onDeviceClick }) {
   // const handleButtonClick 
 
   return (
@@ -85,13 +91,31 @@ function AppNewDeviceRow({ row }) {
         </TableCell>
 
         <TableCell align="right">
-        {
-          row.approved ? (
-          <Button variant="contained">Pour</Button>
-          ) : (
-          <Button variant="outlined">Request</Button>
-          )
-        }
+          {
+            row.pending ? (
+              <LoadingButton variant="contained" size="small" disabled>
+                Request Pending
+              </LoadingButton>
+            ) : (
+              row.approved ? (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      onDeviceClick(row.id, row.approved);
+                    }}>
+                    Pour
+                  </Button>
+              ) : (
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        onDeviceClick(row.id, row.approved);
+                      }}>
+                      Request
+                    </Button>
+              )
+            )
+            }
         </TableCell>
       </TableRow>
     </>
