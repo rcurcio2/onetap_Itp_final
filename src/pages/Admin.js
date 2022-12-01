@@ -108,8 +108,6 @@ export default function UserListPage() {
 
   const dataInPage = dataFiltered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const isFiltered = filterName !== '' || filterRole !== 'all' || filterStatus !== 'all';
-
   const isNotFound =
     (!dataFiltered.length && !!filterName) ||
     (!dataFiltered.length && !!filterRole) ||
@@ -123,25 +121,10 @@ export default function UserListPage() {
     setOpenConfirm(false);
   };
 
-  const handleFilterStatus = (event, newValue) => {
-    setPage(0);
-    setFilterStatus(newValue);
-  };
-
-  const handleFilterName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
-  };
-
-  const handleFilterRole = (event) => {
-    setPage(0);
-    setFilterRole(event.target.value);
-  };
-
-  const handleDeleteRow = (id) => {
-    const deleteRow = tableData.filter((row) => row.id !== id);
+  const handleApproveRow = (id) => {
+    const approveRow = tableData.filter((row) => row.id !== id);
     setSelected([]);
-    setTableData(deleteRow);
+    setTableData(approveRow);
 
     if (page > 0) {
       if (dataInPage.length < 2) {
@@ -150,10 +133,10 @@ export default function UserListPage() {
     }
   };
 
-  const handleDeleteRows = (selected) => {
-    const deleteRows = tableData.filter((row) => !selected.includes(row.id));
+  const handleApproveRows = (selected) => {
+    const approveRows = tableData.filter((row) => !selected.includes(row.id));
     setSelected([]);
-    setTableData(deleteRows);
+    setTableData(approveRows);
 
     if (page > 0) {
       if (selected.length === dataInPage.length) {
@@ -171,16 +154,10 @@ export default function UserListPage() {
     navigate(PATH_DASHBOARD.user.edit(paramCase(id)));
   };
 
-  const handleResetFilter = () => {
-    setFilterName('');
-    setFilterRole('all');
-    setFilterStatus('all');
-  };
-
   return (
     <>
       <Helmet>
-        <title> User: List | Minimal UI</title>
+        <title> Manage Users | OneTap </title>
       </Helmet>
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
@@ -189,16 +166,6 @@ export default function UserListPage() {
         </Typography>
         
         <Card>
-          <UserTableToolbar
-            isFiltered={isFiltered}
-            filterName={filterName}
-            filterRole={filterRole}
-            optionsRole={ROLE_OPTIONS}
-            onFilterName={handleFilterName}
-            onFilterRole={handleFilterRole}
-            onResetFilter={handleResetFilter}
-          />
-
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
               numSelected={selected.length}
@@ -210,9 +177,9 @@ export default function UserListPage() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title="Approve">
                   <IconButton color="primary" onClick={handleOpenConfirm}>
-                    <Iconify icon="eva:trash-2-outline" />
+                    <Iconify icon="eva:checkmark-circle-2-outline" />
                   </IconButton>
                 </Tooltip>
               }
@@ -242,7 +209,7 @@ export default function UserListPage() {
                       row={row}
                       selected={selected.includes(row.id)}
                       onSelectRow={() => onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
+                      onapproveRow={() => handleApproveRow(row.id)}
                       onEditRow={() => handleEditRow(row.name)}
                     />
                   ))}
@@ -280,7 +247,7 @@ export default function UserListPage() {
             variant="contained"
             color="success"
             onClick={() => {
-              handleDeleteRows(selected);
+              handleApproveRows(selected);
               handleCloseConfirm();
             }}
           >
