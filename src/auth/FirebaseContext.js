@@ -73,8 +73,9 @@ export function AuthProvider({ children }) {
 
           const profile = docSnap.data();
 
-          const userRole = profile.admin ? 'admin' : 'User';
-
+          const userRole = profile.admin ? `Admin` : 'User';
+          const adminGroup = profile.admin || '';
+          const groupAdmin = Object.keys(profile.testGroup).map((key) => ({ [key]: profile.testGroup[key].admin || false }));
           dispatch({
             type: 'INITIAL',
             payload: {
@@ -83,8 +84,10 @@ export function AuthProvider({ children }) {
                 ...user,
                 ...profile,
                 role: userRole,
+                admin: adminGroup,
                 groups: profile.groups,
                 total_poured: profile.total_poured,
+                adminGroups: groupAdmin,
 
               },
             },

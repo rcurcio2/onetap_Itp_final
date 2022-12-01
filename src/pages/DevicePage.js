@@ -10,8 +10,6 @@ import Label from '../components/label';
 import { useAuthContext } from '../auth/useAuthContext';
 import { DB } from '../auth/FirebaseContext';
 
-import Pacifico from '../assets/PacificoDesign.png';
-
 export default function DevicePour() {
   const { deviceName } = useParams();
   const [online, setOnline] = useState(false);

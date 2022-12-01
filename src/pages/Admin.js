@@ -1,27 +1,25 @@
 import { Helmet } from 'react-helmet-async';
-import { paramCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+
+import { collection, getDocs, doc, query, orderBy, limit, updateDoc, arrayUnion, where, deleteField, setDoc } from 'firebase/firestore';
 
 // @mui
 import {
-  Tab,
-  Tabs,
   Card,
   Table,
   Button,
   Tooltip,
-  Divider,
   TableBody,
   Container,
   IconButton,
   TableContainer,
   Typography,
 } from '@mui/material';
-// routes
-import { PATH_DASHBOARD } from '../routes/paths';
-// _mock_
-import { _userList } from '../_mock/arrays';
+
+import { useAuthContext } from '../auth/useAuthContext';
+import { DB } from '../auth/FirebaseContext';
+
 // components
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -38,30 +36,16 @@ import {
   TablePaginationCustom,
 } from '../components/table';
 // sections
-import { UserTableToolbar, UserTableRow } from '../sections/@dashboard/user/list';
+import { UserTableRow } from '../sections/@dashboard/user/list';
+
 
 // ----------------------------------------------------------------------
 
-const ROLE_OPTIONS = [
-  'all',
-  'ux designer',
-  'full stack designer',
-  'backend developer',
-  'project manager',
-  'leader',
-  'ui designer',
-  'ui/ux designer',
-  'front end developer',
-  'full stack developer',
-];
-
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', align: 'left' },
-  { id: 'company', label: 'Company', align: 'left' },
-  { id: 'role', label: 'Role', align: 'left' },
+  { id: 'balace', label: 'Balance', align: 'left' },
+  { id: 'totalPoured', label: 'Total Poured', align: 'left' },
   { id: 'isVerified', label: 'Verified', align: 'center' },
-  { id: 'status', label: 'Status', align: 'left' },
-  { id: '' },
 ];
 
 // ----------------------------------------------------------------------
@@ -86,9 +70,7 @@ export default function UserListPage() {
 
   const { themeStretch } = useSettingsContext();
 
-  const navigate = useNavigate();
-
-  const [tableData, setTableData] = useState(_userList);
+  const [tableData, setTableData] = useState([]);
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
@@ -112,6 +94,47 @@ export default function UserListPage() {
     (!dataFiltered.length && !!filterName) ||
     (!dataFiltered.length && !!filterRole) ||
     (!dataFiltered.length && !!filterStatus);
+  
+  // Firebase functions
+  async function getUserData(group) {
+    // get all users from machines collection, group prop doc, users subcollection
+    const q = query(collection(DB, 'machines', group, 'users'));
+    const querySnapshot = await getDocs(q);
+    const users = [];
+    querySnapshot.forEach((doc) => {
+      users.push({
+        id: doc.id,
+        name: doc.data().name,
+        balance: doc.data().balance,
+        totalPoured : doc.data().totalPoured || 0,
+        weeklyPoured : doc.data().weeklyPoured || 0,
+        isVerified: !doc.data().pending,
+      })
+    });
+    setTableData(users);
+  }
+
+  async function addUserData() {
+    console.log('addUserData clicked');
+    const getAllUsers = getDocs(collection(DB, 'users'));
+    getAllUsers.then((querySnapshot) => {
+      querySnapshot.forEach((docROW) => {
+          const docRef = doc(DB, 'machines', 'pike-1', 'users', docROW.id);
+          updateDoc(docRef, {
+            balance: Math.floor(Math.random() * 150),
+          }).then(() => {
+            console.log('Document successfully updated!');
+          }).catch((error) => {
+            console.error('Error updating document: ', error);
+          })
+      });
+    });
+  }
+
+  
+  useEffect(() => {
+    getUserData('pike-1');
+  }, []);
 
   const handleOpenConfirm = () => {
     setOpenConfirm(true);
@@ -150,10 +173,6 @@ export default function UserListPage() {
     }
   };
 
-  const handleEditRow = (id) => {
-    navigate(PATH_DASHBOARD.user.edit(paramCase(id)));
-  };
-
   return (
     <>
       <Helmet>
@@ -164,6 +183,8 @@ export default function UserListPage() {
         <Typography variant="h4" sx={{ p: 3 }}>
             User List
         </Typography>
+
+        <Button onClick={() => addUserData()}>Add User Data</Button>
         
         <Card>
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
@@ -210,11 +231,10 @@ export default function UserListPage() {
                       selected={selected.includes(row.id)}
                       onSelectRow={() => onSelectRow(row.id)}
                       onapproveRow={() => handleApproveRow(row.id)}
-                      onEditRow={() => handleEditRow(row.name)}
                     />
                   ))}
 
-                  <TableEmptyRows height={'medium'} emptyRows={emptyRows(page, rowsPerPage, tableData.length)} />
+                  <TableEmptyRows height={72} emptyRows={emptyRows(page, rowsPerPage, tableData.length)} />
 
                   <TableNoData isNotFound={isNotFound} />
                 </TableBody>
@@ -239,7 +259,7 @@ export default function UserListPage() {
         title="Approve"
         content={
           <>
-            Are you sure want to approve all <strong> {selected.length} </strong> users?
+            Are you sure want to approve all <strong> {selected.length} </strong> users? This will not change the status of already approved users.
           </>
         }
         action={
