@@ -86,9 +86,9 @@ export default function UserListPage() {
   const isNotFound = dataFiltered.length === 0;
   
   // Firebase functions
-  async function getUserData(group) {
+  async function getUserData() {
     // get all users from machines collection, group prop doc, users subcollection
-    const q = query(collection(DB, 'machines', group, 'users'));
+    const q = query(collection(DB, 'machines', user.admin , 'users'));
     const querySnapshot = await getDocs(q);
     const users = [];
     querySnapshot.forEach((doc) => {
@@ -104,10 +104,27 @@ export default function UserListPage() {
     setTableData(users);
   }
 
+  async function approveUsers(userIds) {
+    userIds.forEach((userId) => {
+      const userRef = doc(DB, 'machines', user.admin, 'users', userId);
+      updateDoc(userRef, {
+        pending: deleteField(),
+        balance: 0,
+        totalPoured: 0,
+        weeklyPoured: 0,
+        uid: userId,
+      }).then(() => {
+        console.log('User approved');
+      }).catch((error) => {
+        console.error('Error approving user: ', error);
+      });
+    });
+  }
+
   
   useEffect(() => {
-    getUserData(user.admin);
-  }, [user.admin]);
+    getUserData();
+  }, []);
 
   const handleOpenConfirm = () => {
     setOpenConfirm(true);
@@ -117,33 +134,19 @@ export default function UserListPage() {
     setOpenConfirm(false);
   };
 
-  const handleApproveRow = (id) => {
-    const approveRow = tableData.filter((row) => row.id !== id);
-    setSelected([]);
-    setTableData(approveRow);
-
-    if (page > 0) {
-      if (dataInPage.length < 2) {
-        setPage(page - 1);
-      }
-    }
-  };
-
   const handleApproveRows = (selected) => {
-    const approveRows = tableData.filter((row) => !selected.includes(row.id));
-    setSelected([]);
-    setTableData(approveRows);
+    // send to Firebase
+    approveUsers(selected);
 
-    if (page > 0) {
-      if (selected.length === dataInPage.length) {
-        setPage(page - 1);
-      } else if (selected.length === dataFiltered.length) {
-        setPage(0);
-      } else if (selected.length > dataInPage.length) {
-        const newPage = Math.ceil((tableData.length - selected.length) / rowsPerPage) - 1;
-        setPage(newPage);
+    // update table locally
+    const approvedRows = tableData.filter((row) => {
+      if (selected.includes(row.id)) {
+        row.isVerified = true;
       }
-    }
+      return row;
+    });
+    setSelected([]);
+    setTableData(approvedRows);
   };
 
   return (
@@ -201,7 +204,6 @@ export default function UserListPage() {
                       row={row}
                       selected={selected.includes(row.id)}
                       onSelectRow={() => onSelectRow(row.id)}
-                      onapproveRow={() => handleApproveRow(row.id)}
                     />
                   ))}
 
