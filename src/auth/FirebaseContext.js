@@ -75,7 +75,7 @@ export function AuthProvider({ children }) {
 
           const userRole = profile.admin ? `Admin` : 'User';
           const adminGroup = profile.admin || '';
-          const groupAdmin = Object.keys(profile.testGroup).map((key) => ({ [key]: profile.testGroup[key].admin || false }));
+
           dispatch({
             type: 'INITIAL',
             payload: {
@@ -87,8 +87,6 @@ export function AuthProvider({ children }) {
                 admin: adminGroup,
                 groups: profile.groups,
                 total_poured: profile.total_poured,
-                adminGroups: groupAdmin,
-
               },
             },
           });

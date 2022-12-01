@@ -74,26 +74,16 @@ export default function UserListPage() {
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
-  const [filterName, setFilterName] = useState('');
-
-  const [filterRole, setFilterRole] = useState('all');
-
-  const [filterStatus, setFilterStatus] = useState('all');
+  const { user } = useAuthContext();
 
   const dataFiltered = applyFilter({
     inputData: tableData,
     comparator: getComparator(order, orderBy),
-    filterName,
-    filterRole,
-    filterStatus,
   });
 
   const dataInPage = dataFiltered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const isNotFound =
-    (!dataFiltered.length && !!filterName) ||
-    (!dataFiltered.length && !!filterRole) ||
-    (!dataFiltered.length && !!filterStatus);
+  const isNotFound = dataFiltered.length === 0;
   
   // Firebase functions
   async function getUserData(group) {
@@ -114,27 +104,10 @@ export default function UserListPage() {
     setTableData(users);
   }
 
-  async function addUserData() {
-    console.log('addUserData clicked');
-    const getAllUsers = getDocs(collection(DB, 'users'));
-    getAllUsers.then((querySnapshot) => {
-      querySnapshot.forEach((docROW) => {
-          const docRef = doc(DB, 'machines', 'pike-1', 'users', docROW.id);
-          updateDoc(docRef, {
-            balance: Math.floor(Math.random() * 150),
-          }).then(() => {
-            console.log('Document successfully updated!');
-          }).catch((error) => {
-            console.error('Error updating document: ', error);
-          })
-      });
-    });
-  }
-
   
   useEffect(() => {
-    getUserData('pike-1');
-  }, []);
+    getUserData(user.admin);
+  }, [user.admin]);
 
   const handleOpenConfirm = () => {
     setOpenConfirm(true);
@@ -184,8 +157,6 @@ export default function UserListPage() {
             User List
         </Typography>
 
-        <Button onClick={() => addUserData()}>Add User Data</Button>
-        
         <Card>
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
@@ -281,7 +252,7 @@ export default function UserListPage() {
 
 // ----------------------------------------------------------------------
 
-function applyFilter({ inputData, comparator, filterName, filterStatus, filterRole }) {
+function applyFilter({ inputData, comparator }) {
   const stabilizedThis = inputData.map((el, index) => [el, index]);
 
   stabilizedThis.sort((a, b) => {
@@ -291,18 +262,6 @@ function applyFilter({ inputData, comparator, filterName, filterStatus, filterRo
   });
 
   inputData = stabilizedThis.map((el) => el[0]);
-
-  if (filterName) {
-    inputData = inputData.filter((user) => user.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1);
-  }
-
-  if (filterStatus !== 'all') {
-    inputData = inputData.filter((user) => user.status === filterStatus);
-  }
-
-  if (filterRole !== 'all') {
-    inputData = inputData.filter((user) => user.role === filterRole);
-  }
 
   return inputData;
 }
