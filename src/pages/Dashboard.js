@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { collection, getDocs, getDoc, doc, query, orderBy, limit, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
 
 import { Helmet } from 'react-helmet-async';
 

@@ -1,8 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 
-import { collection, getDocs, doc, query, orderBy, limit, updateDoc, arrayUnion, where, deleteField, setDoc, arrayRemove } from 'firebase/firestore';
+import { collection, getDocs, doc, query, updateDoc, arrayUnion, where, deleteField, arrayRemove } from 'firebase/firestore';
 
 // @mui
 import {
@@ -56,8 +55,6 @@ export default function UserListPage() {
     order,
     orderBy,
     rowsPerPage,
-    setPage,
-    //
     selected,
     setSelected,
     onSelectRow,
@@ -80,8 +77,6 @@ export default function UserListPage() {
     inputData: tableData,
     comparator: getComparator(order, orderBy),
   });
-
-  const dataInPage = dataFiltered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const isNotFound = dataFiltered.length === 0;
   
@@ -165,31 +160,6 @@ export default function UserListPage() {
     });
   }
 
-
-  async function addUserData() {
-    console.log('addUserData clicked');
-    const getAllUsers = getDocs(collection(DB, 'users'));
-    getAllUsers.then((querySnapshot) => {
-      // add the first 10 users to the mac
-      querySnapshot.forEach((docROW) => {
-        const docRef = doc(DB, 'machines', '2Vxo79864QHhNo2q9nxc', 'users', docROW.id);
-        // add 10 users to the mac
-        const randNum = Math.floor(Math.random() * 10);
-        if (randNum < 2) {
-          setDoc(docRef, {
-            name: docROW.data().displayName,
-            pending: true,
-          }).then(() => {
-            console.log('Document successfully updated!');
-          }).catch((error) => {
-            console.error('Error updating document: ', error);
-          })
-        }
-      });
-    });
-  }
-
-  
   useEffect(() => {
     getUserData();
   }, []);
@@ -225,7 +195,7 @@ export default function UserListPage() {
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
         <Typography variant="h4" sx={{ p: 3 }}>
-            User List for {user.admin}
+            All Users for {user.admin}
         </Typography>
 
         <Card>

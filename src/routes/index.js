@@ -9,7 +9,7 @@ import DashboardLayout from '../layouts/dashboard';
 // config
 import { PATH_AFTER_LOGIN } from '../config';
 //
-import { Page404, PageOne, PageTwo, PageFour, LoginPage, DevicePage } from './elements';
+import { Page404, Dashboard, ProfilePage, AdminPage, LoginPage, DevicePage } from './elements';
 
 // ----------------------------------------------------------------------
 
@@ -40,18 +40,18 @@ export default function Router() {
         { element: <Navigate to={PATH_AFTER_LOGIN} replace />, index: true },
         {
           path: 'dash', children: [
-            { path: '', element: <PageOne /> },
+            { path: '', element: <Dashboard /> },
             { path: ':deviceName/pour', element: <DevicePage /> }, 
           ]
         },
-        { path: 'profile', element: <PageTwo /> },
+        { path: 'profile', element: <ProfilePage /> },
         {
           path: 'user',
           children: [
             { element: <Navigate to="/dashboard/user/admin" replace />, index: true },
             {
               path: 'admin', element: (
-                  <PageFour />
+                  <AdminPage />
               )
             },
           ],
