@@ -94,11 +94,9 @@ export default function UserListPage() {
     const users = [];
     devicesSnapshot.forEach(async (device) => {
       const usersRef = collection(DB, 'machines', device.id, 'users');
-      console.log("Data for device: ", device.data().deviceName);
       // wait for getDocs to complete before continuing
       const querySnapshot = await getDocs(usersRef);
       querySnapshot.forEach((doc) => {
-        console.log(doc.id, ' => ', doc.data());
         const userData = {
           id: doc.id,
           name: doc.data().name,
@@ -106,16 +104,18 @@ export default function UserListPage() {
           totalPoured : doc.data().totalPoured || 0,
           weeklyPoured : doc.data().weeklyPoured || 0,
           isVerified: !doc.data().pending,
+          device: [device.id],
         };
         // check if a user with a matching id already exists in the users array
         const existingUser = users.find((user) => user.id === userData.id);
         if (existingUser) {
           // update properties of existing user
           existingUser.name = userData.name;
-          existingUser.balance = userData.balance;
-          existingUser.totalPoured = userData.totalPoured;
-          existingUser.weeklyPoured = userData.weeklyPoured;
+          existingUser.balance += userData.balance;
+          existingUser.totalPoured += userData.totalPoured;
+          existingUser.weeklyPoured += userData.weeklyPoured;
           existingUser.isVerified = userData.isVerified;
+          existingUser.device.push(userData.device[0]);
         } else {
           // add new user to the users array
           users.push(userData);
@@ -127,32 +127,44 @@ export default function UserListPage() {
 
   async function approveUsers(userIds) {
     userIds.forEach((userId) => {
+      // get user data
+      const individualUser = tableData.find((user) => user.id === userId);
 
-      // remove user from pending list
-      const pendingRef = doc(DB, 'machines', user.admin);
-      updateDoc(pendingRef, {
-        userRequests: arrayRemove(userId),
-      }).then(() => {
-        console.log('User removed from pending list');
-      }).catch((error) => {
-        console.error('Error removing user from pending list: ', error);
-      });
+      individualUser.device.forEach((deviceId) => {
+        // remove user from pending list
+        const pendingRef = doc(DB, 'machines', deviceId);
+        updateDoc(pendingRef, {
+          userRequests: arrayRemove(userId),
+        }).then(() => {
+          console.log('User removed from pending list');
+        }).catch((error) => {
+          console.error('Error removing user from pending list: ', error);
+        });
 
-      // add user to users collection
-      const userRef = doc(DB, 'machines', user.admin, 'users', userId);
-      updateDoc(userRef, {
-        pending: deleteField(),
-        balance: 0,
-        totalPoured: 0,
-        weeklyPoured: 0,
-        uid: userId,
-      }).then(() => {
-        console.log('User approved');
-      }).catch((error) => {
-        console.error('Error approving user: ', error);
+        // add user to users collection
+        const userRef = doc(DB, 'machines', deviceId, 'users', userId);
+        updateDoc(userRef, {
+          pending: deleteField(),
+          balance: 0,
+          totalPoured: 0,
+          weeklyPoured: 0,
+          uid: userId,
+        }).then(() => {
+          console.log('User approved');
+        }).catch((error) => {
+          console.error('Error approving user: ', error);
+        });
+
+        // add the group to users group list
+        const userGroupRef = doc(DB, 'users', userId);
+        updateDoc(userGroupRef, {
+          groups: arrayUnion(deviceId),
+        })
+        
       });
     });
   }
+
 
   async function addUserData() {
     console.log('addUserData clicked');

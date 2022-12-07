@@ -86,7 +86,7 @@ export function AuthProvider({ children }) {
                 role: userRole,
                 admin: adminGroup,
                 groups: profile.groups,
-                total_poured: profile.total_poured,
+                totalPoured: profile.total_poured.toFixed(2),
               },
             },
           });

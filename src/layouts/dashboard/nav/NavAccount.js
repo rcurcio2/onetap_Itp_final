@@ -31,7 +31,7 @@ export default function NavAccount() {
         </Typography>
 
         <Typography variant="subtitle2" noWrap sx={{ color: 'text.secondary' }}>
-          {user?.total_poured} Drinks
+          {user?.totalPoured} Drinks
         </Typography>    
         
         <Typography variant="body2" noWrap sx={{ color: 'text.disabled' }}>

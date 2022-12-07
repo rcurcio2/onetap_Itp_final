@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { collection, getDocs, doc, query, orderBy, limit, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, query, orderBy, limit, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
 
 import { Helmet } from 'react-helmet-async';
 
@@ -19,18 +19,6 @@ import { AppWelcome, AppWidgetSummary, AppDeviceStatus } from '../sections/@dash
 // ----------------------------------------------------------------------
 
 // FireBase Functions
-async function getUserTransactions(uid) {
-  const txRef = collection(DB, 'users', uid, 'transactions');
-  const q = query(txRef, orderBy("time", "desc"), limit(10));
-  const querySnapshot = await getDocs(q);
-  const transactions = [];
-  querySnapshot.forEach((doc) => {
-    transactions.push(doc.data());
-  }
-  );
-  return transactions;
-}
-
 
 async function getAllDevices(groups, uid) {
   const devicesRef = collection(DB, 'machines');
@@ -40,7 +28,7 @@ async function getAllDevices(groups, uid) {
     devices.push({
       id: doc.id,
       user: uid,
-      name: doc.data().groupName,
+      name: doc.data().deviceName,
       status: doc.data().kegOnline ? 'online' : 'offline',
       approved: groups.includes(doc.id),
       pending: doc.data().userRequests.includes(uid),
@@ -80,20 +68,9 @@ async function updateDeviceRequest(device, uid, displayName) {
   });
 }
 
-function calculateTotalPoured(transactions) {
-  let total = 0;
-  transactions.forEach((tx) => {
-    total += tx.amount;
-  });
-  return total.toFixed(2);
-}
-
-
-
 export default function GeneralAppPage() {
   const { user } = useAuthContext();
   const [totalPoured, setTotalPoured] = useState(0.00);
-  const [transactions, setTransactions] = useState([]);
   const [devices, setDevices] = useState([]);
   const navigate = useNavigate();
 
@@ -125,15 +102,8 @@ export default function GeneralAppPage() {
       setDevices(devices);
     });
 
-    getUserTransactions(user.uid).then((res) => { 
-      setTransactions(res);
-      setTotalPoured(calculateTotalPoured(res));
-      console.log(res);
-
-      // need total poured to update for the user sitewide
-      user.total_poured = totalPoured;
-    });
-  }, [user, totalPoured]);
+    setTotalPoured(user?.totalPoured || 0.00);
+  }, [user]);
 
   return (
     <>
@@ -147,15 +117,6 @@ export default function GeneralAppPage() {
             <AppWelcome
               title={`Welcome back, ${user?.displayName}`}
               description="Choose a device from the available ones below to start a pour."
-              // img={
-              //   <SeoIllustration
-              //     sx={{
-              //       p: 3,
-              //       width: 360,
-              //       margin: { xs: 'auto', md: 'inherit' },
-              //     }}
-              //   />
-              // }
               action={<Button variant="contained">Go Now</Button>}
               sx={ { p: 3 } }
             />
