@@ -27,7 +27,7 @@ export default function DevicePour() {
             setOnline(doc.data().kegOnline);
             setUserLock(doc.data().userLock);
             setPouring(doc.data().pouring);
-            setName(doc.data().groupName);
+            setName(doc.data().deviceName || '');
             setOnTap(doc.data().onTap || '');
             setCost(doc.data().costPerPint || '');
         });
@@ -63,7 +63,13 @@ export default function DevicePour() {
 
           <Grid item xs={12} align="center">
             <Container maxWidth="sm">
-                <Button variant="contained" color="primary" size='large' fullWidth>Pour</Button>
+              <Button
+                variant="contained"
+                color="primary"
+                size='large'
+                fullWidth
+              >
+                Pour</Button>
             </Container>
           </Grid>
 

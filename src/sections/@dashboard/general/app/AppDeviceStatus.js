@@ -100,6 +100,7 @@ function AppNewDeviceRow({ row, onDeviceClick }) {
               row.approved ? (
                   <Button
                     variant="contained"
+                    {...(row.status === 'offline' && { disabled: true })}
                     onClick={() => {
                       onDeviceClick(row.id, row.approved);
                     }}>

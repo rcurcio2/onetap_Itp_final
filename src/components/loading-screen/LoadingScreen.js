@@ -1,4 +1,6 @@
 import { m } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
+
 // @mui
 import { alpha, styled } from '@mui/material/styles';
 import { Box } from '@mui/material';
@@ -26,6 +28,9 @@ const StyledRoot = styled('div')(({ theme }) => ({
 export default function LoadingScreen() {
   return (
     <>
+      <Helmet>
+        <title> Loading | One Tap</title>
+      </Helmet>
       <ProgressBar />
 
       <StyledRoot>
