@@ -7,6 +7,7 @@ import {
   Button,
   TableRow,
   TableBody,
+  TableHead,
   TableCell,
   CardHeader,
   TableContainer,
@@ -16,7 +17,6 @@ import { LoadingButton } from '@mui/lab';
 // components
 import Label from '../../../../components/label';
 import Scrollbar from '../../../../components/scrollbar';
-import { TableHeadCustom } from '../../../../components/table';
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +36,13 @@ export default function AppDeviceStatus({ title, subheader, tableData, tableLabe
       <TableContainer sx={{ overflow: 'unset' }}>
         <Scrollbar>
           <Table>
-            <TableHeadCustom headLabel={tableLabels} />
+            <TableHead>
+              <TableRow>
+                <TableCell>Device Name</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }} >Status</TableCell>
+                <TableCell align="right"> </TableCell>
+              </TableRow>
+            </TableHead>
 
             <TableBody>
               {tableData.map((row) => (

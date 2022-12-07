@@ -140,11 +140,6 @@ export default function GeneralAppPage() {
               title="All Devices"
               subheader={"Request to join any group or take action on available devices"}
               tableData={devices}
-              tableLabels={[
-                { id: 'name', label: 'Device Name' },
-                { id: 'online', label: 'Status' },
-                { id: '' },
-              ]}
               onDeviceClick={onDeviceClick}
             />
           </Grid>
