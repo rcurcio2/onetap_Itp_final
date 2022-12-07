@@ -14,7 +14,7 @@ export const PATH_AUTH = {
 
 export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
-  dash: path(ROOTS_DASHBOARD, '/dash'),
+  dash: path(ROOTS_DASHBOARD, '/dash'), 
   device: (deviceName) => path(ROOTS_DASHBOARD, `/${deviceName}/pour`),
   profile: path(ROOTS_DASHBOARD, '/profile'),
 

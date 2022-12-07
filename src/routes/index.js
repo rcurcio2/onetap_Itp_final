@@ -38,8 +38,12 @@ export default function Router() {
       ),
       children: [
         { element: <Navigate to={PATH_AFTER_LOGIN} replace />, index: true },
-        { path: 'dash', element: <PageOne /> },
-        { path: ':deviceName/pour', element: <DevicePage /> }, 
+        {
+          path: 'dash', children: [
+            { path: '', element: <PageOne /> },
+            { path: ':deviceName/pour', element: <DevicePage /> }, 
+          ]
+        },
         { path: 'profile', element: <PageTwo /> },
         {
           path: 'user',

@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { collection, getDocs, doc, query, orderBy, limit, updateDoc, arrayUnion, where, deleteField, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, query, orderBy, limit, updateDoc, arrayUnion, where, deleteField, setDoc, arrayRemove } from 'firebase/firestore';
 
 // @mui
 import {
@@ -85,27 +85,60 @@ export default function UserListPage() {
 
   const isNotFound = dataFiltered.length === 0;
   
-  // Firebase functions
   async function getUserData() {
     // get all users from machines collection, group prop doc, users subcollection
-    const q = query(collection(DB, 'machines', user.admin , 'users'));
-    const querySnapshot = await getDocs(q);
+    const q = query(collection(DB, 'machines'), where('groupName', '==', user.admin));
+    // get users subcollection from above query
+    const devicesSnapshot = await getDocs(q);
+
     const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({
-        id: doc.id,
-        name: doc.data().name,
-        balance: doc.data().balance,
-        totalPoured : doc.data().totalPoured || 0,
-        weeklyPoured : doc.data().weeklyPoured || 0,
-        isVerified: !doc.data().pending,
-      })
+    devicesSnapshot.forEach(async (device) => {
+      const usersRef = collection(DB, 'machines', device.id, 'users');
+      console.log("Data for device: ", device.data().deviceName);
+      // wait for getDocs to complete before continuing
+      const querySnapshot = await getDocs(usersRef);
+      querySnapshot.forEach((doc) => {
+        console.log(doc.id, ' => ', doc.data());
+        const userData = {
+          id: doc.id,
+          name: doc.data().name,
+          balance: doc.data().balance || 0,
+          totalPoured : doc.data().totalPoured || 0,
+          weeklyPoured : doc.data().weeklyPoured || 0,
+          isVerified: !doc.data().pending,
+        };
+        // check if a user with a matching id already exists in the users array
+        const existingUser = users.find((user) => user.id === userData.id);
+        if (existingUser) {
+          // update properties of existing user
+          existingUser.name = userData.name;
+          existingUser.balance = userData.balance;
+          existingUser.totalPoured = userData.totalPoured;
+          existingUser.weeklyPoured = userData.weeklyPoured;
+          existingUser.isVerified = userData.isVerified;
+        } else {
+          // add new user to the users array
+          users.push(userData);
+          setTableData(users);
+        }
+      });
     });
-    setTableData(users);
   }
 
   async function approveUsers(userIds) {
     userIds.forEach((userId) => {
+
+      // remove user from pending list
+      const pendingRef = doc(DB, 'machines', user.admin);
+      updateDoc(pendingRef, {
+        userRequests: arrayRemove(userId),
+      }).then(() => {
+        console.log('User removed from pending list');
+      }).catch((error) => {
+        console.error('Error removing user from pending list: ', error);
+      });
+
+      // add user to users collection
       const userRef = doc(DB, 'machines', user.admin, 'users', userId);
       updateDoc(userRef, {
         pending: deleteField(),
@@ -117,6 +150,29 @@ export default function UserListPage() {
         console.log('User approved');
       }).catch((error) => {
         console.error('Error approving user: ', error);
+      });
+    });
+  }
+
+  async function addUserData() {
+    console.log('addUserData clicked');
+    const getAllUsers = getDocs(collection(DB, 'users'));
+    getAllUsers.then((querySnapshot) => {
+      // add the first 10 users to the mac
+      querySnapshot.forEach((docROW) => {
+        const docRef = doc(DB, 'machines', '2Vxo79864QHhNo2q9nxc', 'users', docROW.id);
+        // add 10 users to the mac
+        const randNum = Math.floor(Math.random() * 10);
+        if (randNum < 2) {
+          setDoc(docRef, {
+            name: docROW.data().displayName,
+            pending: true,
+          }).then(() => {
+            console.log('Document successfully updated!');
+          }).catch((error) => {
+            console.error('Error updating document: ', error);
+          })
+        }
       });
     });
   }
@@ -157,7 +213,7 @@ export default function UserListPage() {
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
         <Typography variant="h4" sx={{ p: 3 }}>
-            User List
+            User List for {user.admin}
         </Typography>
 
         <Card>

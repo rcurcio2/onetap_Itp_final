@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { collection, getDocs, doc, query, orderBy, limit, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, doc, query, orderBy, limit, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
 
 import { Helmet } from 'react-helmet-async';
 
@@ -30,6 +30,7 @@ async function getUserTransactions(uid) {
   );
   return transactions;
 }
+
 
 async function getAllDevices(groups, uid) {
   const devicesRef = collection(DB, 'machines');
@@ -61,10 +62,21 @@ async function getAllDevices(groups, uid) {
   return devices;
 }
 
-async function updateDeviceRequest(device, uid) {
+async function updateDeviceRequest(device, uid, displayName) {
+  // update the device's users collection and add a document for the user with the uid and pending set to true
+  const collectionRef = collection(DB, 'machines', device, 'users');
+  const docRef = doc(collectionRef, uid);
+
+  // add user to device's userRequests array
   const deviceRef = doc(DB, 'machines', device);
   await updateDoc(deviceRef, {
     userRequests: arrayUnion(uid),
+  });
+  
+  // add user to device's users collection
+  await setDoc(docRef, {
+    pending: true,
+    name: displayName,
   });
 }
 
@@ -87,7 +99,7 @@ export default function GeneralAppPage() {
 
   const onDeviceClick = (device, approved) => {
     if (!approved) {
-      updateDeviceRequest(device, user.uid)
+      updateDeviceRequest(device, user.uid, user.displayName)
       .then(() => {
         const newDevices = devices.map((d) => {
           if (d.id === device) {
@@ -101,7 +113,7 @@ export default function GeneralAppPage() {
         setDevices(newDevices);
       });
     } else {
-      navigate(`/dashboard/${device}/pour`);
+      navigate(`/dashboard/dash/${device}/pour`);
     }
   }
   
