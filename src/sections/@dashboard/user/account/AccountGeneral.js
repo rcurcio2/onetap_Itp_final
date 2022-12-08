@@ -1,113 +1,74 @@
-import * as Yup from 'yup';
-import { useCallback } from 'react';
-// form
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useState } from 'react';
+
 // @mui
-import { Box, Grid, Card, Stack, Typography } from '@mui/material';
+import { Box, Grid, Card, Stack, Typography, TextField, Switch } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import { doc, updateDoc } from 'firebase/firestore';
+
 // auth
 import { useAuthContext } from '../../../../auth/useAuthContext';
+// firebase
+import { DB } from "../../../../auth/FirebaseContext";
 // utils
-import { fData } from '../../../../utils/formatNumber';
-// assets
-import { countries } from '../../../../assets/data';
 // components
 import { useSnackbar } from '../../../../components/snackbar';
-import FormProvider, { RHFSwitch, RHFSelect, RHFTextField, RHFUploadAvatar } from '../../../../components/hook-form';
+
+
+
 
 // ----------------------------------------------------------------------
+const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const phoneRegex = /^(?:\d{3}[-]*){2}\d{4}$/;
+
+async function updateUserData(uid, username, email, phoneNumber, isPublic) {
+  const userRef = doc(DB, 'users', uid);
+  await updateDoc(userRef, {
+    displayName: username,
+    emailAddress: email,
+    phone: phoneNumber,
+    publicProfile: isPublic,
+  });
+}
 
 export default function AccountGeneral() {
   const { enqueueSnackbar } = useSnackbar();
 
   const { user } = useAuthContext();
 
-  const UpdateUserSchema = Yup.object().shape({
-    displayName: Yup.string().required('Name is required'),
+  const [username, setUsername] = useState(user?.displayName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [isPublic, setIsPublic] = useState(user?.isPublic || false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [errors, setErrors] = useState({
+    username: null,
+    email: null,
+    phoneNumber: null,
   });
 
-  const defaultValues = {
-    displayName: user?.displayName || '',
-    email: user?.email || '',
-    photoURL: user?.photoURL || '',
-    phoneNumber: user?.phoneNumber || '',
-    country: user?.country || '',
-    address: user?.address || '',
-    state: user?.state || '',
-    city: user?.city || '',
-    zipCode: user?.zipCode || '',
-    about: user?.about || '',
-    isPublic: user?.isPublic || false,
-  };
-
-  const methods = useForm({
-    resolver: yupResolver(UpdateUserSchema),
-    defaultValues,
-  });
-
-  const {
-    setValue,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = methods;
-
-  const onSubmit = async () => {
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      enqueueSnackbar('Update success!');
+      await updateUserData(user.uid, username, email, phoneNumber, isPublic);
+      enqueueSnackbar('Infomation successfully updated!');
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDrop = useCallback(
-    (acceptedFiles) => {
-      const file = acceptedFiles[0];
-
-      const newFile = Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      });
-
-      if (file) {
-        setValue('photoURL', newFile);
-      }
-    },
-    [setValue]
-  );
 
   return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={onSubmit}>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ py: 10, px: 3, textAlign: 'center' }}>
-            <RHFUploadAvatar
-              name="photoURL"
-              maxSize={3145728}
-              onDrop={handleDrop}
-              helperText={
-                <Typography
-                  variant="caption"
-                  sx={{
-                    mt: 2,
-                    mx: 'auto',
-                    display: 'block',
-                    textAlign: 'center',
-                    color: 'text.secondary',
-                  }}
-                >
-                  Allowed *.jpeg, *.jpg, *.png, *.gif
-                  <br /> max size of {fData(3145728)}
-                </Typography>
-              }
-            />
-
-            <RHFSwitch name="isPublic" labelPlacement="start" label="Public Profile" sx={{ mt: 5 }} />
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12}>
           <Card sx={{ p: 3 }}>
+            <Typography variant="h5" sx={{ mb: 5 }}>
+              General
+            </Typography>
             <Box
               rowGap={3}
               columnGap={2}
@@ -117,40 +78,42 @@ export default function AccountGeneral() {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="displayName" label="Name" />
-
-              <RHFTextField name="email" label="Email Address" />
-
-              <RHFTextField name="phoneNumber" label="Phone Number" />
-
-              <RHFTextField name="address" label="Address" />
-
-              <RHFSelect name="country" label="Country" placeholder="Country">
-                <option value="" />
-                {countries.map((option) => (
-                  <option key={option.code} value={option.label}>
-                    {option.label}
-                  </option>
-                ))}
-              </RHFSelect>
-
-              <RHFTextField name="state" label="State/Region" />
-
-              <RHFTextField name="city" label="City" />
-
-              <RHFTextField name="zipCode" label="Zip/Code" />
+              <TextField label="Username" value={username} onChange={(e) => setUsername(e.target.value)}/>
+              <TextField label="Email" helperText={errors.email} error={!!errors.email} value={email}  onChange={(e) => {
+                if (e.target.value === '') {
+                  setErrors({ ...errors, email: 'Email is required' });
+                } else if (emailRegex.test(e.target.value) === false) {
+                  setErrors({ ...errors, email: 'Email is invalid' });
+                } else {
+                  setErrors({ ...errors, email: null });
+                }
+                setEmail(e.target.value)
+              }} />
+              <TextField label="Phone Number" helperText={errors.phoneNumber} error={!!errors.phoneNumber} value={phoneNumber}  onChange={(e) => {
+                if (phoneRegex.test(e.target.value) === false) {
+                  setErrors({ ...errors, phoneNumber: 'Ex.123-456-7890' });
+                } else {
+                  setErrors({ ...errors, phoneNumber: null });
+                }
+                setPhoneNumber(e.target.value)
+              }}/>
             </Box>
 
-            <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
-              <RHFTextField name="about" multiline rows={4} label="About" />
+            <Stack direction="row" alignItems="center" sx={{ mt: 3 }}>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+                Public Profile
+              </Typography>
+              <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+            </Stack>
 
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+            <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
+              <LoadingButton type="submit" variant="contained" loading={isSubmitting} disabled={Object.values(errors).some(error => error !== null)}>
                 Save Changes
               </LoadingButton>
             </Stack>
           </Card>
         </Grid>
       </Grid>
-    </FormProvider>
+    </form>
   );
 }
