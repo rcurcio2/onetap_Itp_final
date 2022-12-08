@@ -116,8 +116,8 @@ export default function GeneralAppPage() {
           <Grid item xs={12} md={8}>
             <AppWelcome
               title={`Welcome back, ${user?.displayName}`}
-              description="Choose a device from the available ones below to start a pour."
-              action={<Button variant="contained">Go Now</Button>}
+              description="With this app, you can easily pour your own drinks at participating locations. Simply choose a device that you have joined, or request to join a group to get started. You can also check your profile to see your pour history and manage your payment information."
+              action={<Button variant="contained" onClick={ () => navigate('/dashboard/profile') }>View my Profile</Button>}
               sx={ { p: 3 } }
             />
           </Grid>
@@ -138,7 +138,7 @@ export default function GeneralAppPage() {
           <Grid item xs={12} lg={12}>
             <AppDeviceStatus
               title="All Devices"
-              subheader={"Request to join any group or take action on available devices"}
+              subheader={"Explore available devices to pour from"}
               tableData={devices}
               onDeviceClick={onDeviceClick}
             />

@@ -40,24 +40,15 @@ export default function DevicePour() {
         <title>Pour | {capitalCase(name)}</title>
       </Helmet>
       
-      <Container maxWidth="xl">
+      <Container maxWidth="sm">
         <Grid container spacing={3}>
           <Grid item xs={12} align="center">
             <Typography variant="overline">Start a Pour</Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center',}}>
                 <Typography variant="h2"> {capitalCase(name)}</Typography>
-                <Label
-                  variant="soft"
-                  color={
-                    online ? "success" : "error"
-                  }
-                sx={{ ml: 2 }}
-                >
-                  {online ? "Online" : "Offline"}
-                </Label>
             </Box>
             <Typography variant="body1" sx={{my:3}}>
-              Simply tap pour then follow the insturctions on your phone. We handle the rest.
+              To pour your drink, simply tap the 'Pour' button and follow the instructions on your phone. We'll handle the rest, so you can sit back, relax, and enjoy your drink.
             </Typography>
           </Grid>
 
@@ -68,8 +59,10 @@ export default function DevicePour() {
                 color="primary"
                 size='large'
                 fullWidth
+                disabled= { !online || pouring }
               >
-                Pour</Button>
+                { !online ? 'Device Offline' : 'Pour'}
+              </Button>
             </Container>
           </Grid>
 

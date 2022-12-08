@@ -14,7 +14,7 @@ export default function Login() {
   const { method } = useAuthContext();
 
   return (
-    <LoginLayout title='Welcome to OneTap' subtitle='Your next drink is just a few clicks away.'>
+    <LoginLayout title='Welcome to OneTap' subtitle='Effortlessly pour your own drinks'>
       <Stack spacing={2} sx={{ mb: 1, position: 'relative' }}>
         <Typography variant="h4">Sign in to OneTap</Typography>
 

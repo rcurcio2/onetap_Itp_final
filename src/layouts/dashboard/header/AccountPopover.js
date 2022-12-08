@@ -22,11 +22,7 @@ const OPTIONS = [
   },
   {
     label: 'Profile',
-    linkTo: '/',
-  },
-  {
-    label: 'Settings',
-    linkTo: '/',
+    linkTo: '/dashboard/profile',
   },
 ];
 

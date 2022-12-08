@@ -32,7 +32,7 @@ export default function LoginLayout({ children, illustration, title, subtitle })
           {title || 'Hi, Welcome back'}
         </Typography>
 
-        <Typography variant="h6" sx={{ mb: 0, maxWidth: 480, textAlign: 'center' }}>
+        <Typography variant="subtitle" sx={{ mb: 0, maxWidth: 480, textAlign: 'center' }}>
           {subtitle}
         </Typography>
 
