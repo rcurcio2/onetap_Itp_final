@@ -16,13 +16,15 @@ import {
   Typography,
 } from '@mui/material';
 
+import Modal from '../components/modal';
+
 import { useAuthContext } from '../auth/useAuthContext';
 import { DB } from '../auth/FirebaseContext';
 
 // components
+
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-import ConfirmDialog from '../components/confirm-dialog';
 import { useSettingsContext } from '../components/settings';
 import {
   useTable,
@@ -36,6 +38,8 @@ import {
 } from '../components/table';
 // sections
 import { UserTableRow } from '../sections/@dashboard/user/list';
+
+import { useSnackbar } from '../components/snackbar';
 
 
 // ----------------------------------------------------------------------
@@ -70,8 +74,11 @@ export default function UserListPage() {
   const [tableData, setTableData] = useState([]);
 
   const [openConfirm, setOpenConfirm] = useState(false);
+  const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
+
 
   const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -146,7 +153,9 @@ export default function UserListPage() {
           uid: userId,
         }).then(() => {
           console.log('User approved');
+          enqueueSnackbar('Users succesfully approved!');
         }).catch((error) => {
+          enqueueSnackbar('Error approving users', { variant: 'error' });
           console.error('Error approving user: ', error);
         });
 
@@ -154,6 +163,34 @@ export default function UserListPage() {
         const userGroupRef = doc(DB, 'users', userId);
         updateDoc(userGroupRef, {
           groups: arrayUnion(deviceId),
+        })
+        
+      });
+    });
+  }
+
+  async function deleteUsers(userIds) {
+    userIds.forEach((userId) => {
+      // get user data
+      const individualUser = tableData.find((user) => user.id === userId);
+
+      individualUser.device.forEach((deviceId) => {
+        // remove user from users collection
+        const userRef = doc(DB, 'machines', deviceId, 'users', userId);
+        updateDoc(userRef, {
+          pending: true,
+        }).then(() => {
+          console.log('User deleted');
+          enqueueSnackbar('Users succesfully removed!', { variant: 'warning' });
+        }).catch((error) => {
+          enqueueSnackbar('Error approving users', { variant: 'error' });
+          console.error('Error approving user: ', error);
+        });
+
+        // remove the group from users group list
+        const userGroupRef = doc(DB, 'users', userId);
+        updateDoc(userGroupRef, {
+          groups: arrayRemove(deviceId),
         })
         
       });
@@ -172,6 +209,15 @@ export default function UserListPage() {
     setOpenConfirm(false);
   };
 
+  const handleOpenConfirmDelete = () => {
+    setOpenConfirmDelete(true);
+  };
+
+  const handleCloseConfirmDelete = () => {
+    setOpenConfirmDelete(false);
+  };
+
+
   const handleApproveRows = (selected) => {
     // send to Firebase
     approveUsers(selected);
@@ -183,6 +229,22 @@ export default function UserListPage() {
       }
       return row;
     });
+    setSelected([]);
+    setTableData(approvedRows);
+  };
+
+  const handleDeleteRows = (selected) => {
+    // send to Firebase
+    deleteUsers(selected);
+
+    // update table locally
+    const approvedRows = tableData.filter((row) => {
+      if (selected.includes(row.id)) {
+        row.isVerified = false;
+      }
+      return row;
+    });
+    handleCloseConfirmDelete();
     setSelected([]);
     setTableData(approvedRows);
   };
@@ -210,11 +272,18 @@ export default function UserListPage() {
                 )
               }
               action={
-                <Tooltip title="Approve">
-                  <IconButton color="primary" onClick={handleOpenConfirm}>
-                    <Iconify icon="eva:checkmark-circle-2-outline" />
-                  </IconButton>
-                </Tooltip>
+                <>
+                  <Tooltip title="Approve">
+                    <IconButton color="primary" onClick={handleOpenConfirm}>
+                      <Iconify icon="eva:checkmark-circle-2-outline" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete" sx={{ml: 1}}>
+                    <IconButton color="error" onClick={handleOpenConfirmDelete}>
+                      <Iconify icon="eva:close-circle-outline" />
+                    </IconButton>
+                  </Tooltip>
+                </>
               }
             />
 
@@ -263,11 +332,8 @@ export default function UserListPage() {
           />
         </Card>
       </Container>
-
-      <ConfirmDialog
-        open={openConfirm}
-        onClose={handleCloseConfirm}
-        title="Approve"
+      
+      <Modal onOpen={openConfirm} onClose={handleCloseConfirm} title="Confirm"
         content={
           <>
             Are you sure want to approve all <strong> {selected.length} </strong> users? This will not change the status of already approved users.
@@ -284,8 +350,27 @@ export default function UserListPage() {
           >
             Confirm
           </Button>
+        } />
+      
+      <Modal onOpen={openConfirmDelete} onClose={handleCloseConfirmDelete} title="Delete"
+        content={
+          <>
+            Are you sure want to delete all <strong> {selected.length} </strong> users? Their status will change to <strong>not approved</strong>.
+          </>
         }
-      />
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDeleteRows(selected);
+              handleCloseConfirm();
+            }}
+          >
+            Delete
+          </Button>
+        } />
+      
     </>
   );
 }

@@ -10,6 +10,8 @@ import { Container, Grid, Button } from '@mui/material';
 import { useAuthContext } from '../auth/useAuthContext';
 import { DB } from '../auth/FirebaseContext';
 
+import { useSnackbar } from '../components/snackbar';
+
 
 // sections
 import { AppWelcome, AppWidgetSummary, AppDeviceStatus } from '../sections/@dashboard/general/app';
@@ -70,6 +72,7 @@ async function updateDeviceRequest(device, uid, displayName) {
 
 export default function GeneralAppPage() {
   const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
   const [totalPoured, setTotalPoured] = useState(0.00);
   const [devices, setDevices] = useState([]);
   const navigate = useNavigate();
@@ -85,9 +88,12 @@ export default function GeneralAppPage() {
               pending: true,
             };
           }
+          enqueueSnackbar('Request sent!', { variant: 'success' });
           return d;
         });
         setDevices(newDevices);
+      }).catch((error) => {
+        enqueueSnackbar(error.message, { variant: 'error' });
       });
     } else {
       navigate(`/dashboard/dash/${device}/pour`);

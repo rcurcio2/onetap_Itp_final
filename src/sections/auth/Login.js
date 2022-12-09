@@ -1,7 +1,5 @@
 // @mui
-import { Alert, Tooltip, Stack, Typography, Link, Box } from '@mui/material';
-// hooks
-import { useAuthContext } from '../../auth/useAuthContext';
+import { Stack, Typography, Link } from '@mui/material';
 // layouts
 import LoginLayout from '../../layouts/login';
 //
@@ -11,8 +9,6 @@ import AuthWithSocial from './AuthWithSocial';
 // ----------------------------------------------------------------------
 
 export default function Login() {
-  const { method } = useAuthContext();
-
   return (
     <LoginLayout title='Welcome to OneTap' subtitle='Effortlessly pour your own drinks'>
       <Stack spacing={2} sx={{ mb: 1, position: 'relative' }}>
@@ -20,10 +16,6 @@ export default function Login() {
 
         <AuthWithSocial />
       </Stack>
-
-      {/* <Alert severity="info" sx={{ mb: 3 }}>
-        Use email : <strong>demo@minimals.cc</strong> / password :<strong> demo1234</strong>
-      </Alert> */}
 
       <AuthLoginForm />
       <Stack direction="row" spacing={ 0.5} alignItems="center" sx={{ my: 2 }}>
