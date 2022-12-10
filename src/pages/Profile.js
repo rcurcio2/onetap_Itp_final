@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { useParams } from 'react-router-dom';
 
 // @mui
 import { Container, Grid, Typography } from '@mui/material';
@@ -15,6 +16,7 @@ import {
 
 export default function UserAccountPage() {
   const { user } = useAuthContext();
+  const { userName } = useParams();
   return (
     <>
       <Helmet>
