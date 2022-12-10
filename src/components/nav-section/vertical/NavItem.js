@@ -96,5 +96,5 @@ export default function NavItem({ item, depth, open, active, isExternalLink, ...
     );
   };
 
-  return <RoleBasedGuard roles={roles}> {renderItem()} </RoleBasedGuard>;
+  return renderItem();
 }
