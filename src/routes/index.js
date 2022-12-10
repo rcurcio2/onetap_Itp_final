@@ -58,6 +58,13 @@ export default function Router() {
                 </RoleBasedGuard>
               )
             },
+            {
+              path: ':uid/edit', element: (
+                <RoleBasedGuard roles={['Admin']}>
+                  <ProfilePage />
+                </RoleBasedGuard>
+              ), 
+            }
           ],
         },
       ],

@@ -21,5 +21,6 @@ export const PATH_DASHBOARD = {
   user: {
     root: path(ROOTS_DASHBOARD, '/user'),
     admin: path(ROOTS_DASHBOARD, '/user/admin'),
+    edit: (uid) => path(ROOTS_DASHBOARD, `/user/${uid}/edit`),
   },
 };

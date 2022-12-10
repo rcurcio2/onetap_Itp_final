@@ -49,6 +49,7 @@ const TABLE_HEAD = [
   { id: 'balace', label: 'Balance', align: 'left' },
   { id: 'totalPoured', label: 'Total Poured', align: 'left' },
   { id: 'isVerified', label: 'Verified', align: 'center' },
+  { id: 'edit', label: '', align: 'center' },
 ];
 
 // ----------------------------------------------------------------------

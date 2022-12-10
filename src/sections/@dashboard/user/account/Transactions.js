@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { Typography, Card, Box, Avatar, Button, CardHeader, TableContainer, Table, TableRow, TableHead, TableBody, TableCell } from "@mui/material";
+import { Typography, Card, Box, Avatar, TableContainer, Table, TableRow, TableHead, TableBody, TableCell } from "@mui/material";
 import { format } from 'date-fns';
 import { getDocs, collection, orderBy, limit, query } from "firebase/firestore";
 import { fCurrency } from '../../../../utils/formatNumber';
@@ -37,7 +37,6 @@ export default function AccountTransactions() {
     if (user) {
       getUserTransactions(user.uid).then((transactions) => {
         setTransactions(transactions);
-        console.log(transactions);
       });
     }
     

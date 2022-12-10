@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router';
 // @mui
-import { Stack, Avatar, Checkbox, TableRow, TableCell, Typography } from '@mui/material';
+import { Stack, Avatar, Checkbox, TableRow, TableCell, Typography, Button, Tooltip } from '@mui/material';
 // components
 
 import Iconify from '../../../../components/iconify';
@@ -13,7 +14,8 @@ UserTableRow.propTypes = {
 };
 
 export default function UserTableRow({ row, selected, onSelectRow }) {
-  const { name, balance, totalPoured, isVerified } = row;
+  const { id, name, balance, totalPoured, isVerified } = row;
+  const navigate = useNavigate();
 
   return (
     <>
@@ -53,6 +55,14 @@ export default function UserTableRow({ row, selected, onSelectRow }) {
               ...(!isVerified && { color: 'warning.main' }),
             }}
           />
+        </TableCell>
+
+        <TableCell align="center">
+          <Tooltip title="Edit users profile" >
+            <Button onClick={() => { navigate(`/dashboard/user/${row.id}/edit`) }} color="info">
+              <Iconify icon="eva:edit-outline" sx={{ width: 20, height: 20 }} />
+            </Button>
+          </Tooltip>
         </TableCell>
       </TableRow>
     </>
