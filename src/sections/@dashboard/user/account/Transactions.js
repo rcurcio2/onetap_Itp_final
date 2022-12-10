@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import { getDocs, collection, orderBy, limit, query } from "firebase/firestore";
 import { fCurrency } from '../../../../utils/formatNumber';
 import Iconify from '../../../../components/iconify';
-import { useAuthContext } from "../../../../auth/useAuthContext";
 import { DB } from "../../../../auth/FirebaseContext";
 
 async function getUserTransactions(uid) {
@@ -29,18 +28,18 @@ async function getUserTransactions(uid) {
 
 
 
-export default function AccountTransactions() {
+export default function AccountTransactions(props) {
   const [transactions, setTransactions] = useState([]);
-  const { user } = useAuthContext();
+  const { id } = props;
 
   useEffect(() => {
-    if (user) {
-      getUserTransactions(user.uid).then((transactions) => {
+    if (id) {
+      getUserTransactions(id).then((transactions) => {
         setTransactions(transactions);
       });
     }
     
-  }, [user]);
+  }, [id]);
 
   return (
     <Card sx={{ p: 3 }}> 

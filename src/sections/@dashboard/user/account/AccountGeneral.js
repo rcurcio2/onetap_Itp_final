@@ -1,12 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // @mui
 import { Box, Grid, Card, Stack, Typography, TextField, Switch } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 
-// auth
-import { useAuthContext } from '../../../../auth/useAuthContext';
 // firebase
 import { DB } from "../../../../auth/FirebaseContext";
 // utils
@@ -30,15 +28,16 @@ async function updateUserData(uid, username, email, phoneNumber, isPublic) {
   });
 }
 
-export default function AccountGeneral() {
-  const { enqueueSnackbar } = useSnackbar();
+export default function AccountGeneral(props) {
 
-  const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar(); 
 
-  const [username, setUsername] = useState(user?.displayName || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
-  const [isPublic, setIsPublic] = useState(user?.isPublic || false);
+  const { id } = props;
+
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [errors, setErrors] = useState({
@@ -47,11 +46,32 @@ export default function AccountGeneral() {
     phoneNumber: null,
   });
 
+  async function getUserData(uid) {
+    const userRef = doc(DB, 'users', uid);
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      setUsername(data.displayName);
+      setEmail(data.emailAddress || '');
+      setPhoneNumber(data.phone || '');
+      setIsPublic(data.isPublic || false);
+    } else {
+      console.log('No such document!');
+    }
+  }
+
+  useEffect(() => {
+    if (id) {
+      getUserData(id);
+    }
+  }, [id]);
+
+
   const onSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     try {
-      await updateUserData(user.uid, username, email, phoneNumber, isPublic);
+      await updateUserData(id, username, email, phoneNumber, isPublic);
       enqueueSnackbar('Infomation successfully updated!');
     } catch (error) {
       console.error(error);
