@@ -59,7 +59,7 @@ export default function UserTableRow({ row, selected, onSelectRow }) {
 
         <TableCell align="center">
           <Tooltip title="Edit users profile" >
-            <Button onClick={() => { navigate(`/dashboard/user/${row.id}/edit`) }} color="info">
+            <Button onClick={() => { navigate(`/dashboard/user/${id}/edit`) }} color="info">
               <Iconify icon="eva:edit-outline" sx={{ width: 20, height: 20 }} />
             </Button>
           </Tooltip>
