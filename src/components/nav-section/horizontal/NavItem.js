@@ -74,7 +74,7 @@ const NavItem = forwardRef(({ item, depth, open, active, isExternalLink, ...othe
     );
   };
 
-  return <RoleBasedGuard roles={roles}> {renderItem()} </RoleBasedGuard>;
+  return renderItem();
 });
 
 NavItem.propTypes = {

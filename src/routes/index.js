@@ -2,6 +2,7 @@ import { Navigate, useRoutes } from 'react-router-dom';
 // auth
 import AuthGuard from '../auth/AuthGuard';
 import GuestGuard from '../auth/GuestGuard';
+import RoleBasedGuard from '../auth/RoleBasedGuard';
 
 // layouts
 import CompactLayout from '../layouts/compact';
@@ -10,6 +11,7 @@ import DashboardLayout from '../layouts/dashboard';
 import { PATH_AFTER_LOGIN } from '../config';
 //
 import { Page404, Dashboard, ProfilePage, AdminPage, LoginPage, DevicePage } from './elements';
+
 
 // ----------------------------------------------------------------------
 
@@ -51,9 +53,18 @@ export default function Router() {
             { element: <Navigate to="/dashboard/user/admin" replace />, index: true },
             {
               path: 'admin', element: (
+                <RoleBasedGuard roles={['Admin']}>
                   <AdminPage />
+                </RoleBasedGuard>
               )
             },
+            {
+              path: ':uid/edit', element: (
+                <RoleBasedGuard roles={['Admin']}>
+                  <ProfilePage />
+                </RoleBasedGuard>
+              ), 
+            }
           ],
         },
       ],
